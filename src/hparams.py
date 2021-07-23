@@ -21,12 +21,12 @@ def create_hparams():
         ################################
         # Experiment Parameters        #
         ################################
-        run_name="Run1",
+        run_name="NoSigmoid",
         seed=1234,
         # Important placeholder vital to load and save model
         logger=None,
         checkpoint_path="checkpoints/",
-        val_after_n_steps=100,
+        val_every_n_epoch=1,
         # Can also have string "1,2,3" or list [1,2,3]
         gpus=[2],
         run_tests=True,
@@ -36,12 +36,14 @@ def create_hparams():
         ################################
         # Data Parameters             #
         ################################
-        num_workers=0,
+        num_workers=32,
         data_mean=data_property["mean"].item(),
         data_std=data_property["std"].item(),
-        batch_size=256,
+        data_max=data_property["max"].item(),
+        data_min=data_property["min"].item(),
+        batch_size=1024,
         dataset_location="data/",
-        data_max_len=63,
+        data_max_len=80,
 
 
         ################################
@@ -67,7 +69,13 @@ def create_hparams():
         ################################
         # Model Parameters             #
         ################################
-        # embedding_dim = 300 etc..
+        n_channels=1,
+        n_kernels=512,
+        latent_size=256,
+        kernel_size=4,
+        stride=2,
+        padding=1,
+        img_shape=(80, 80),
 
 
     )

@@ -134,3 +134,6 @@ data/
 
 # Tensorboard logs
 tb_logs/
+
+# Checkpoints
+checkpoints/

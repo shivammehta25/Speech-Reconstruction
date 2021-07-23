@@ -9,6 +9,7 @@ from typing import Any, Union
 
 import torch
 import torch.nn as nn
+from torch.nn.functional import normalize
 from torchaudio.datasets.speechcommands import SPEECHCOMMANDS
 from src.utilities.audio.audio_processing import TacotronSTFT
 
@@ -20,9 +21,11 @@ def pad_sequence(batch, max_length):
         new_batch.append(item.t())
         len_of_items.append(len(item.t()))
 
+    new_batch.append(torch.zeros(max_length, batch[0].shape[0]))
+
     batch = torch.nn.utils.rnn.pad_sequence(
         new_batch, batch_first=True, padding_value=0.)
-    return batch, torch.LongTensor(len_of_items)
+    return batch[:-1], torch.LongTensor(len_of_items)
 
 
 class CustomCollate:
@@ -42,8 +45,8 @@ class CustomCollate:
         Args:
             batch (torch.Tensor): a batch of batch_len will come here from torch.util.Dataset
         """
-
-        return pad_sequence(batch, self.data_max_len)
+        mel, mel_len = pad_sequence(batch, self.data_max_len)
+        return mel.unsqueeze(1), mel_len
 
 
 class Normalize(nn.Module):
@@ -54,7 +57,7 @@ class Normalize(nn.Module):
     Responsible for normalization and denormalization of inputs
     """
 
-    def __init__(self, mean: float, std: float):
+    def __init__(self, mean: float, std: float, max: float, min: float):
         super(Normalize, self).__init__()
 
         if not torch.is_tensor(mean):
@@ -62,24 +65,38 @@ class Normalize(nn.Module):
         if not torch.is_tensor(std):
             std = torch.tensor(std)
 
+        if not torch.is_tensor(max):
+            max = torch.tensor(max)
+        if not torch.is_tensor(min):
+            min = torch.tensor(min)
+
         self.register_buffer("mean", mean)
         self.register_buffer("std", std)
+        self.register_buffer("max", max)
+        self.register_buffer("min", min)
 
     def forward(self, x):
-        return self._normalize(x)
-
-    def _normalize(self, x):
         r"""
         Takes an input and normalises it
         """
+        return self._standardize(x)
+
+    def inverse_normalize(self, x):
+        r"""
+        Takes an input and de-normalises it
+        """
+        return self._inverse_standardize(x)
+
+    def _standardize(self, x):
+
         if not torch.is_tensor(x):
             x = torch.tensor(x)
 
         x = x.sub(self.mean).div(self.std)
         return x
 
-    def inverse_normalize(self, x):
-        """
+    def _inverse_standardize(self, x):
+        r"""
         Takes an input and de-normalises it
         """
         if not torch.is_tensor(x):
@@ -88,10 +105,18 @@ class Normalize(nn.Module):
         x = x.mul(self.std).add(self.mean)
         return x
 
+    def _min_max_normalize(self, x):
+        x = x.sub(self.min).div(self.max.sub(self.min))
+        return x
+
+    def _min_max_denormalize(self, x):
+        x = x.mul(self.max.sub(self.min)).add(self.min)
+        return x
+
 
 class SpeechCommandDataset(SPEECHCOMMANDS):
 
-    def __init__(self, hparams, subset=None) -> None:
+    def __init__(self, hparams, subset=None, normalize=True) -> None:
 
         super(SpeechCommandDataset, self).__init__(
             root=hparams.dataset_location, subset=subset)
@@ -101,7 +126,10 @@ class SpeechCommandDataset(SPEECHCOMMANDS):
             hparams.n_mel_channels, hparams.sampling_rate, hparams.mel_fmin,
             hparams.mel_fmax)
 
-        self.normalizer = Normalize(hparams.data_mean, hparams.data_std)
+        self.normalize = normalize
+
+        self.normalizer = Normalize(
+            hparams.data_mean, hparams.data_std, hparams.data_max, hparams.data_min)
 
     def __getitem__(self, n: int):
         data_item = super().__getitem__(n)
@@ -117,7 +145,7 @@ class SpeechCommandDataset(SPEECHCOMMANDS):
         melspec = self.stft.mel_spectrogram(audio)
         melspec = torch.squeeze(melspec, 0)
 
-        return self.normalizer(melspec)
+        return self.normalizer(melspec) if self.normalize else melspec
 
     def __len__(self) -> int:
         return super().__len__()

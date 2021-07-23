@@ -3,14 +3,18 @@ training_model.py
 
 This file contains PyTorch Lightning's main module where code of the main model is implemented
 """
+from argparse import Namespace
+from typing import Any, List, Tuple
+
+import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import pytorch_lightning as pl
-from typing import List, Tuple, Any
-from argparse import Namespace
 
-from src.model.MainModel import MainModel
+from src.model.MelVAE import MelVAE
+from src.utilities.data_utils import Normalize
+from src.utilities.plotting_utils import (plot_spectrogram_to_numpy,
+                                          plot_spectrogram_to_numpy_fixed_cbar)
 
 
 class MyTrainingModule(pl.LightningModule):
@@ -23,11 +27,24 @@ class MyTrainingModule(pl.LightningModule):
         self.save_hyperparameters(hparams)
         hparams.logger = self.logger
 
-        self.model = MainModel(hparams)
+        self.normalizer = Normalize(
+            hparams.data_mean, hparams.data_std, hparams.data_max, hparams.data_min)
 
-        self.loss = nn.CrossEntropyLoss()
+        self.model = MelVAE(hparams.n_channels,
+                            hparams.n_kernels,
+                            hparams.latent_size,
+                            hparams.kernel_size,
+                            hparams.stride,
+                            hparams.padding,
+                            hparams.img_shape
+                            )
 
-    def forward(self, x):
+        self.recloss = nn.MSELoss()
+
+    def kldivloss(self, mu, logsigma_sq):
+        return ((mu ** 2 + logsigma_sq.exp() - 1 - logsigma_sq) / 2).mean()
+
+    def forward(self, mel):
         r"""
         Forward pass of the model
 
@@ -37,8 +54,14 @@ class MyTrainingModule(pl.LightningModule):
         Returns:
             output (Any): output of the forward function
         """
-        output = self.model(x)
-        return output
+        (mu, logsigma_sq), mel_recons = self.model(mel)
+
+        kldivloss = self.kldivloss(mu, logsigma_sq)
+        recloss = self.recloss(mel_recons, mel)
+
+        loss = kldivloss + recloss
+
+        return loss
 
     def configure_optimizers(self):
         r"""
@@ -61,11 +84,13 @@ class MyTrainingModule(pl.LightningModule):
         Returns:
             loss (torch.Tensor): loss of the forward run of your model
         """
-        x = train_batch
-        output = self(x)
-        loss = self.loss(output, y)
-        self.log("train_loss", loss, prog_bar=True,
+        mel, mel_len = train_batch
+
+        loss = self(mel)
+
+        self.log("train_loss", loss.item(), prog_bar=True,
                  on_step=True, sync_dist=True, logger=True)
+
         return loss
 
     def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
@@ -89,11 +114,13 @@ class MyTrainingModule(pl.LightningModule):
             val_batch (Any): output depends what you are returning from the train loop
             batch_idx (): batch index
         """
-        x = val_batch
-        output = self(x)
-        loss = self.loss(output, y)
-        self.log("val_loss", loss, prog_bar=True,
-                 on_step=True, sync_dist=True, logger=True)
+        mel, mel_len = val_batch
+
+        loss = self(mel)
+
+        self.log("val_loss", loss.item(), prog_bar=True,
+                 sync_dist=True, logger=True)
+
         return loss
 
     def validation_epoch_end(self, outputs):
@@ -103,5 +130,17 @@ class MyTrainingModule(pl.LightningModule):
             outputs (List[Any]): list of return from the validation step
         """
 
-        # TODO: Plots etc. are saved here
-        pass
+        if self.trainer.is_global_zero:
+            batch = next(iter(self.val_dataloader()))
+            for i in range(5):
+                image = batch[0][i].to(self.device).unsqueeze(0)
+
+                (mu, logsigma_sq), mel_recon = self.model(image)
+
+                self.logger.experiment.add_image(
+                    "InputNorm/{}".format(i+1), plot_spectrogram_to_numpy_fixed_cbar(image.squeeze().T.cpu()), self.current_epoch, dataformats='HWC')
+                self.logger.experiment.add_image(
+                    "OutputNorm/{}".format(i+1), plot_spectrogram_to_numpy_fixed_cbar(mel_recon.squeeze().T.cpu()), self.current_epoch, dataformats='HWC')
+
+                self.logger.experiment.add_image(
+                    "Output/{}".format(i+1), plot_spectrogram_to_numpy(self.normalizer.inverse_normalize(mel_recon).squeeze().T.cpu()), self.current_epoch, dataformats='HWC')

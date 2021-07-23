@@ -40,7 +40,7 @@ if __name__ == '__main__':
     checkpoint_callback = ModelCheckpoint(monitor='val_loss',
                                           dirpath=hparams.checkpoint_path,
                                           filename=f"{hparams.run_name}" +
-                                          '-{epoch}-{step}',
+                                          '-{epoch}-{step}-{val_loss}',
                                           verbose=True,
                                           every_n_val_epochs=1)
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
                          flush_logs_every_n_steps=10,
                          #  plugins=DDPPlugin(find_unused_parameters=False),
                          #  accelerator='ddp',
-                         val_check_interval=hparams.val_after_n_steps,
+                         check_val_every_n_epoch=hparams.val_every_n_epoch,
                          gradient_clip_val=hparams.grad_clip_thresh,
                          callbacks=[checkpoint_callback],
                          track_grad_norm=2,

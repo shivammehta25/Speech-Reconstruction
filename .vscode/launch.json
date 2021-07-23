@@ -9,8 +9,12 @@
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/train.py",
-            "console": "integratedTerminal"
-        }
+            "console": "integratedTerminal",
+            "env": {
+                // "CUDA_VISIBLE_DEVICES": "4,5,6,7",
+                "CUDA_LAUNCH_BLOCKING": "1"
+            }
+        },
         {
             "name": "Python: Current File",
             "type": "python",

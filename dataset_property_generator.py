@@ -35,20 +35,32 @@ def collate_fn(batch):
 def generate_mean_and_std_of_speechcommands():
 
     hparams = create_hparams()
-    dataset = SpeechCommandDataset(hparams, subset='training')
+    dataset = SpeechCommandDataset(hparams, subset='training', normalize=False)
     data_loader = DataLoader(dataset, hparams.batch_size,
-                             collate_fn=CustomCollate())
+                             collate_fn=CustomCollate(80))
 
     total_sum = 0.0
     total_len = 0
     total_sum_sq = 0.0
-    different_mel_lengths = set()
+
+    max_value, min_value = -float("inf"), float("inf")
 
     for i, batch in enumerate(tqdm(data_loader)):
         mel, mel_len = batch
+        mel = mel.cuda()
+        mel_len = mel_len.cuda()
         total_sum += torch.sum(mel)
         total_len += torch.sum(mel_len)
         total_sum_sq += torch.sum(torch.pow(mel, 2))
+
+        max_batch = torch.max(mel)
+        min_batch = torch.min(mel)
+
+        if max_batch > max_value:
+            max_value = max_batch
+
+        if min_batch < min_value:
+            min_value = min_batch
 
     mean = total_sum / (total_len * hparams.n_mel_channels)
 
@@ -56,8 +68,11 @@ def generate_mean_and_std_of_speechcommands():
     variance = mean_sq - (mean * mean)
     std = torch.sqrt(variance)
     print("Mean and variance ", mean, std)
+    print("Max and Min", max_value, min_value)
 
-    torch.save({'mean': mean, 'std': std}, "data_mean_and_std.pt")
+    # torch.save({'mean': mean, 'std': std}, "data_mean_and_std.pt")
+    torch.save({'mean': mean, 'std': std, 'min': min_value,
+               'max': max_value}, "data_mean_and_std.pt")
 
 
 if __name__ == "__main__":
