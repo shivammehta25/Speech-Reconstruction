@@ -3,10 +3,14 @@ data_module.py
 
 Contains PyTorch-Lightning's datamodule and dataloaders 
 """
+import os
+
+import pytorch_lightning as pl
 import torch
 from torch.utils.data import DataLoader
-import pytorch_lightning as pl
-from src.utilities.data_utils import CustomCollate, CustomDataset
+from torchaudio.datasets import SPEECHCOMMANDS
+
+from src.utilities.data_utils import CustomCollate, Normalize, SpeechCommandDataset
 
 
 class MyDataModule(pl.LightningDataModule):
@@ -19,7 +23,7 @@ class MyDataModule(pl.LightningDataModule):
         """
         super().__init__()
         self.hparams = hparams
-        self.collate_fn = CustomCollate()
+        self.collate_fn = CustomCollate(hparams.data_max_len)
 
     def prepare_data(self):
         r"""
@@ -28,36 +32,25 @@ class MyDataModule(pl.LightningDataModule):
         # Example
         # MNIST(self.data_dir, train=True, download=True)
         # MNIST(self.data_dir, train=False, download=True)
+        SPEECHCOMMANDS(self.hparams.dataset_location, download=True)
+
+    def load_list(self, filename):
+        filepath = os.path.join(self._path, filename)
+        with open(filepath) as fileobj:
+            return [os.path.join(self._path, line.strip()) for line in fileobj]
 
     def setup(self, stage=None):
         r"""
         Set train, val and test dataset here
-        
+
         Args:
             stage (string, optional): fit, test based on plt.Trainer state. 
                                     Defaults to None.
         """
-        # Example:
-        # # Assign train/val datasets for use in dataloaders
-        # if stage == 'fit' or stage is None:
-        #     mnist_full = MNIST(self.data_dir, train=True, transform=self.transform)
-        #     self.mnist_train, self.mnist_val = random_split(mnist_full, [55000, 5000])
 
-        #     # Optionally...
-        #     # self.dims = tuple(self.mnist_train[0][0].shape)
-
-        # # Assign test dataset for use in dataloader(s)
-        # if stage == 'test' or stage is None:
-        #     self.mnist_test = MNIST(self.data_dir, train=False, transform=self.transform)
-
-        #     # Optionally...
-        #     # self.dims = tuple(self.mnist_test[0][0].shape)
-        
-        raise NotImplementedError("Add your dataloaders first and remove this line")
-        
-        self.train_data = CustomDataset()
-        self.val_data = CustomDataset()
-        self.test_data = CustomDataset()
+        self.train_data = SpeechCommandDataset(self.hparams, subset="training")
+        self.val_data = SpeechCommandDataset(self.hparams, subset="validation")
+        self.test_data = SpeechCommandDataset(self.hparams, subset="testing")
 
     def train_dataloader(self):
         r"""
@@ -76,7 +69,7 @@ class MyDataModule(pl.LightningDataModule):
         Returns:
             (torch.utils.data.DataLoader): Validation Dataloader
         """
-        
+
         return DataLoader(self.val_data, batch_size=self.hparams.batch_size, collate_fn=self.collate_fn,
                           num_workers=self.hparams.num_workers, pin_memory=True)
 

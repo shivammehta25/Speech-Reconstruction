@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+# Dataset
+data/
+
+# Tensorboard logs
+tb_logs/
