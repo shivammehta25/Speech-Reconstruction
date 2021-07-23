@@ -12,21 +12,21 @@ from argparse import Namespace
 
 from src.model.MainModel import MainModel
 
+
 class MyTrainingModule(pl.LightningModule):
-    
+
     def __init__(self, hparams):
         super().__init__()
         if type(hparams) != Namespace:
             hparams = Namespace(**hparams)
 
-        self.save_hyperparameters(hparams)        
+        self.save_hyperparameters(hparams)
         hparams.logger = self.logger
-        
-        # TODO: Change this to your pytorch model
+
         self.model = MainModel(hparams)
 
         self.loss = nn.CrossEntropyLoss()
-        
+
     def forward(self, x):
         r"""
         Forward pass of the model
@@ -39,7 +39,7 @@ class MyTrainingModule(pl.LightningModule):
         """
         output = self.model(x)
         return output
-    
+
     def configure_optimizers(self):
         r"""
         Configure optimizer
@@ -49,7 +49,7 @@ class MyTrainingModule(pl.LightningModule):
         """
         return torch.optim.Adam(self.parameters(), lr=self.hparams.learning_rate,
                                 weight_decay=self.hparams.weight_decay)
-    
+
     def training_step(self, train_batch, batch_idx):
         r"""
         Main training loop of your model
@@ -61,18 +61,18 @@ class MyTrainingModule(pl.LightningModule):
         Returns:
             loss (torch.Tensor): loss of the forward run of your model
         """
-        x, y = train_batch
+        x = train_batch
         output = self(x)
         loss = self.loss(output, y)
-        self.log("train_loss", loss, prog_bar=True, on_step=True, sync_dist=True, logger=True)
+        self.log("train_loss", loss, prog_bar=True,
+                 on_step=True, sync_dist=True, logger=True)
         return loss
 
     def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
         r"""
         Called when the train batch ends
-        
-        TODO: If you want to do something after your batch iteration
-        
+
+
         Args:
             outputs (Any): output depends what you are returning from the train loop
             batch (List): batch of input data sent to the training_loop
@@ -89,18 +89,19 @@ class MyTrainingModule(pl.LightningModule):
             val_batch (Any): output depends what you are returning from the train loop
             batch_idx (): batch index
         """
-        x, y = val_batch
+        x = val_batch
         output = self(x)
         loss = self.loss(output, y)
-        self.log("val_loss", loss, prog_bar=True, on_step=True, sync_dist=True, logger=True)
+        self.log("val_loss", loss, prog_bar=True,
+                 on_step=True, sync_dist=True, logger=True)
         return loss
-    
+
     def validation_epoch_end(self, outputs):
         r"""This is called once the validation epoch is finished
 
         Args:
             outputs (List[Any]): list of return from the validation step
         """
-        
+
         # TODO: Plots etc. are saved here
         pass
