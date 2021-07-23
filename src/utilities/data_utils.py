@@ -3,15 +3,15 @@ data_utils.py
 
 Utilities for processing of Data
 """
+from src.utilities.audio.audio_processing import TacotronSTFT
+from torchaudio.datasets.speechcommands import SPEECHCOMMANDS
+from torch.nn.functional import normalize
 import os
 from argparse import Namespace
 from typing import Any, Union
 
 import torch
 import torch.nn as nn
-from torch.nn.functional import normalize
-from torchaudio.datasets.speechcommands import SPEECHCOMMANDS
-from src.utilities.audio.audio_processing import TacotronSTFT
 
 
 def pad_sequence(batch, max_length):
@@ -45,6 +45,7 @@ class CustomCollate:
         Args:
             batch (torch.Tensor): a batch of batch_len will come here from torch.util.Dataset
         """
+
         mel, mel_len = pad_sequence(batch, self.data_max_len)
         return mel.unsqueeze(1), mel_len
 

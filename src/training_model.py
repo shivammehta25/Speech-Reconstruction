@@ -3,18 +3,24 @@ training_model.py
 
 This file contains PyTorch Lightning's main module where code of the main model is implemented
 """
-from argparse import Namespace
-from typing import Any, List, Tuple
-
-import pytorch_lightning as pl
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-
-from src.model.MelVAE import MelVAE
-from src.utilities.data_utils import Normalize
+from src.model.MainModel import MainModel
+from typing import List, Tuple, Any
 from src.utilities.plotting_utils import (plot_spectrogram_to_numpy,
                                           plot_spectrogram_to_numpy_fixed_cbar)
+from src.utilities.data_utils import Normalize
+from src.model.MelVAE import MelVAE
+import torch.nn.functional as F
+import torch.nn as nn
+import torch
+import pytorch_lightning as pl
+from typing import Any, List, Tuple
+from argparse import Namespace
+<< << << < HEAD
+
+
+== == == =
+
+>>>>>> > cc5b82bb4a95c6908ceb29e00ad530655be06c6e
 
 
 class MyTrainingModule(pl.LightningModule):
