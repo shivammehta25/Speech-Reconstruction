@@ -1,26 +1,26 @@
 # Speech Reconstruction via Generative Modelling
----
-## Uses Generative Modelling to reconsturct MelSpectrograms of images
+
+Uses Generative Modelling to reconsturct MelSpectrograms of images
 
 
-### Set Up Environment
+## Set Up Environment
 1. Open `environment.yml` set the `prefix` to your desired anaconda location
 2. then run `conda env create -f environment.yml`
 
----
-### Training
 
-#### VAE
+## Training
+
+### VAE
 1. open `src/hparams.py` set `model = "VAE"`
-#### GAN
+### GAN
 1. open `src/hparams.py` set `model = "GAN"`
-#### DCGAN
+### DCGAN
 1. open `src/hparams.py` set `model = "DCGAN"`
 
----
-### Synthesising
+
+## Synthesising
 1. open `jupyter-notebook` and open `generate_samples.ipyb` and follow the instructions there
----
+
 
 # Some synthesised Examples
 
@@ -41,6 +41,7 @@
 ![Dataset Sample 1](/images/DCGAN1.png)
 ![Dataset Sample 1](/images/DCGAN2.png)
 
+---
 
 ### Resources
 
