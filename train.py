@@ -14,7 +14,7 @@ from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 
 from src.hparams import create_hparams
 from src.data_module import MyDataModule
-from src.training_model import MelVAETrainer, MelGANTrainer
+from src.training_model import MelVAETrainer, MelGANTrainer, MelDCGANTrainer
 from run_tests import run_tests
 
 if __name__ == '__main__':
@@ -34,15 +34,15 @@ if __name__ == '__main__':
     seed_everything(hparams.seed)
 
     data_module = MyDataModule(hparams)
-    model = MelGANTrainer(hparams)
+    model = MelDCGANTrainer(hparams)
 
     # Callbacks
     checkpoint_callback = ModelCheckpoint(
-                                          dirpath=hparams.checkpoint_path,
-                                          filename=f"{hparams.run_name}" +
-                                          '-{epoch}-{step}',
-                                          verbose=True,
-                                          every_n_val_epochs=1)
+        dirpath=hparams.checkpoint_path,
+        filename=f"{hparams.run_name}" +
+        '-{epoch}-{step}',
+        verbose=True,
+        every_n_val_epochs=1)
 
     logger = TensorBoardLogger('tb_logs', name=hparams.run_name)
 

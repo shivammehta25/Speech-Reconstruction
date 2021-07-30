@@ -21,7 +21,7 @@ def create_hparams():
         ################################
         # Experiment Parameters        #
         ################################
-        run_name="testGAN",
+        run_name="DCGAN",
         seed=1234,
         # Important placeholder vital to load and save model
         logger=None,
