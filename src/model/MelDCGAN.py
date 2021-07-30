@@ -26,6 +26,7 @@ class Generator_Conv(nn.Module):
             nn.BatchNorm2d(64, 0.8),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(64, img_shape[0], 3, stride=1, padding=1),
+
         )
 
     def forward(self, z):

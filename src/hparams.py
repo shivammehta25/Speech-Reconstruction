@@ -21,7 +21,7 @@ def create_hparams():
         ################################
         # Experiment Parameters        #
         ################################
-        run_name="DCGAN",
+        run_name="DCGAN-Real",
         seed=1234,
         # Important placeholder vital to load and save model
         logger=None,
@@ -41,7 +41,7 @@ def create_hparams():
         data_std=data_property["std"].item(),
         data_max=data_property["max"].item(),
         data_min=data_property["min"].item(),
-        batch_size=1024,
+        batch_size=256,
         dataset_location="data/",
         data_max_len=80,
 
@@ -87,10 +87,6 @@ def create_hparams():
         kernel_size=4,
         stride=2,
         padding=1,
-
-
-
-
     )
 
     return hparams

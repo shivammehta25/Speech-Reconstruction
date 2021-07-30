@@ -166,9 +166,9 @@ class MelGANTrainer(pl.LightningModule):
 
         # networks
         data_shape = (hparams.n_channels, *hparams.img_shape)
-        self.generator = Generator_Conv(
+        self.generator = Generator(
             latent_dim=self.hparams.latent_size, img_shape=data_shape)
-        self.discriminator = Discriminator_Conv(img_shape=data_shape)
+        self.discriminator = Discriminator(img_shape=data_shape)
 
         self.register_buffer("validation_z", torch.randn(
             5, self.hparams.latent_size))
@@ -272,10 +272,10 @@ class MelDCGANTrainer(pl.LightningModule):
 
         # networks
         data_shape = (hparams.n_channels, *hparams.img_shape)
-        self.generator = Generator(
+        self.generator = Generator_Conv(
             latent_dim=self.hparams.latent_size, img_shape=data_shape)
 
-        self.discriminator = Discriminator(img_shape=data_shape)
+        self.discriminator = Discriminator_Conv(img_shape=data_shape)
 
         self.register_buffer("validation_z", torch.randn(
             5, self.hparams.latent_size))
