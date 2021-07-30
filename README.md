@@ -8,6 +8,7 @@ Uses Generative Modelling to reconsturct MelSpectrograms of images
 2. then run `conda env create -f environment.yml`
 
 
+
 ## Training
 
 ### VAE
@@ -19,7 +20,8 @@ Uses Generative Modelling to reconsturct MelSpectrograms of images
 
 
 ## Synthesising
-1. open `jupyter-notebook` and open `generate_samples.ipyb` and follow the instructions there
+1. `git clone https://github.com/NVIDIA/waveglow.git` Download WaveGlow Vocoder and place it in the same directory so that it is like `Speech-Reconstruction/waveglow`
+2. open `jupyter-notebook` and open `generate_samples.ipyb` and follow the instructions there
 
 
 # Some synthesised Examples
