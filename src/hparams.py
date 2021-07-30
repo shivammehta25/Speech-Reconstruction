@@ -21,7 +21,7 @@ def create_hparams():
         ################################
         # Experiment Parameters        #
         ################################
-        run_name="NoSigmoid",
+        run_name="testGAN",
         seed=1234,
         # Important placeholder vital to load and save model
         logger=None,
@@ -61,21 +61,34 @@ def create_hparams():
         ################################
         # Optimization Hyperparameters #
         ################################
+
+        # Common
         learning_rate=1e-3,
         weight_decay=1e-6,
         grad_clip_thresh=4.0,
 
+        # GAN
+        lr_gan=0.0002,
+        b1_gan=0.5,
+        b2_gan=0.999,
 
         ################################
         # Model Parameters             #
         ################################
+
+        # Common
         n_channels=1,
         n_kernels=512,
         latent_size=256,
+        img_shape=(80, 80),
+
+
+        # VAE
         kernel_size=4,
         stride=2,
         padding=1,
-        img_shape=(80, 80),
+
+
 
 
     )

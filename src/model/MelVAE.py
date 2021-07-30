@@ -151,7 +151,6 @@ class MelVAE(nn.Module):
         mus, log_sigma_sq = self.Q(x_hat)
         # Once the mus and the
         z_sampled = self.z(mus, log_sigma_sq)
-        z_sampled.shape
         z_projected = self.project(z_sampled).view(
             -1, self.n_kernels, self.output_shapes[-1][2], self.output_shapes[-1][3]
         )  # Project and reshape back to an image

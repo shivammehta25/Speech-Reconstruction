@@ -14,7 +14,7 @@ from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 
 from src.hparams import create_hparams
 from src.data_module import MyDataModule
-from src.training_model import MyTrainingModule
+from src.training_model import MelVAETrainer, MelGANTrainer
 from run_tests import run_tests
 
 if __name__ == '__main__':
@@ -34,13 +34,13 @@ if __name__ == '__main__':
     seed_everything(hparams.seed)
 
     data_module = MyDataModule(hparams)
-    model = MyTrainingModule(hparams)
+    model = MelGANTrainer(hparams)
 
     # Callbacks
-    checkpoint_callback = ModelCheckpoint(monitor='val_loss',
+    checkpoint_callback = ModelCheckpoint(
                                           dirpath=hparams.checkpoint_path,
                                           filename=f"{hparams.run_name}" +
-                                          '-{epoch}-{step}-{val_loss}',
+                                          '-{epoch}-{step}',
                                           verbose=True,
                                           every_n_val_epochs=1)
 
