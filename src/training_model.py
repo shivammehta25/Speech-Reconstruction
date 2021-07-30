@@ -15,12 +15,6 @@ import torch
 import pytorch_lightning as pl
 from typing import Any, List, Tuple
 from argparse import Namespace
-<< << << < HEAD
-
-
-== == == =
-
->>>>>> > cc5b82bb4a95c6908ceb29e00ad530655be06c6e
 
 
 class MyTrainingModule(pl.LightningModule):
