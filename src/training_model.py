@@ -9,6 +9,7 @@ from src.utilities.plotting_utils import (plot_spectrogram_to_numpy,
 from src.utilities.data_utils import Normalize
 from src.model.MelVAE import MelVAE
 from src.model.MelGAN import Generator, Discriminator
+from src.model.MelDCGAN import Generator_Conv, Discriminator_Conv
 import torch.nn.functional as F
 import torch.nn as nn
 import torch
@@ -165,9 +166,9 @@ class MelGANTrainer(pl.LightningModule):
 
         # networks
         data_shape = (hparams.n_channels, *hparams.img_shape)
-        self.generator = Generator(
+        self.generator = Generator_Conv(
             latent_dim=self.hparams.latent_size, img_shape=data_shape)
-        self.discriminator = Discriminator(img_shape=data_shape)
+        self.discriminator = Discriminator_Conv(img_shape=data_shape)
 
         self.register_buffer("validation_z", torch.randn(
             5, self.hparams.latent_size))
