@@ -22,6 +22,7 @@ def create_hparams():
         # Experiment Parameters        #
         ################################
         run_name="DCGAN-Real",
+        model="DCGAN",  # VAE, GAN, DCGAN
         seed=1234,
         # Important placeholder vital to load and save model
         logger=None,

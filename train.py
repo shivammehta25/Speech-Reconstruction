@@ -34,7 +34,16 @@ if __name__ == '__main__':
     seed_everything(hparams.seed)
 
     data_module = MyDataModule(hparams)
-    model = MelDCGANTrainer(hparams)
+
+    if hparams.model == "VAE":
+        model = MelVAETrainer(hparams)
+    elif hparams.model == "GAN":
+        model = MelGANTrainer(hparams)
+    elif hparams.model == "DCGAN":
+        model = MelDCGANTrainer(hparams)
+    else:
+        raise ValueError(
+            "Invalid model for hparams.model currently this repository only supports VAE, GAN, DCGAN but was {}".format(hparams.model))
 
     # Callbacks
     checkpoint_callback = ModelCheckpoint(
